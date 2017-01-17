@@ -1,0 +1,4 @@
+---
+being_monitored_smart_disks: []
+being_monitored_parents: []
+being_monitored_address: "{{ ansible_default_ipv4.address }}"

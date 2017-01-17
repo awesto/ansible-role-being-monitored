@@ -1,0 +1,41 @@
+---
+- name: monitoring user is present
+  user:
+    name: monitoring
+    state: present
+
+- name: authorized key for monitoring is installed
+  authorized_key:
+    user: monitoring
+    key: "{{ icinga_monitoring_public_key }}"
+
+- name: Make sure sudo is installed
+  apt:
+    name: sudo
+    state: installed
+
+- name: Setup sudo for SMART monitoring
+  lineinfile:
+    state: present
+    dest: /etc/sudoers
+    line: 'monitoring  ALL=(ALL) NOPASSWD:/usr/lib/nagios/plugins/check_ide_smart'
+
+- name: Make sure nagios-plugins are installed
+  apt:
+    name: nagios-plugins
+    state: installed
+
+- name: Update known_hosts on monitoring servers
+  copy: 
+    src: ssh_known_hosts
+    dest: /etc/ssh/ssh_known_hosts
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups.monitoring_servers }}"
+
+- name: register host for monitoring
+  template:
+    src: icinga_host.cfg.j2
+    dest: /etc/icinga/objects/{{ inventory_hostname }}.cfg
+  notify: reload icinga
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups.monitoring_servers }}"

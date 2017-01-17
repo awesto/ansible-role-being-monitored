@@ -1,0 +1,7 @@
+---
+- name: reload icinga
+  service:
+    name: icinga
+    state: reloaded
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups.monitoring_servers }}"
